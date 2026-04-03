@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CollabCode — Live Editor</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- CodeMirror: the code editor -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+
+  <!-- Firebase -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<body>
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="logo">CollabCode</div>
+    <div class="room-info">
+      Room: <span id="room-id">—</span>
+    </div>
+    <div class="topbar-right">
+      <div class="users" id="user-list"></div>
+      <button class="btn-share" onclick="copyLink()">Copy invite link</button>
+    </div>
+  </div>
+
+  <!-- Join screen (shown first) -->
+  <div class="join-screen" id="join-screen">
+    <div class="join-card">
+      <h1>CollabCode</h1>
+      <p>Real-time collaborative code editor. Share the link, code together.</p>
+      <input id="name-input" placeholder="Your name (e.g. Arjun)" maxlength="20" />
+      <button onclick="joinRoom()">Join / Create Room</button>
+      <div class="join-hint" id="join-hint"></div>
+    </div>
+  </div>
+
+  <!-- Main editor (hidden until joined) -->
+  <div class="editor-layout" id="editor-layout" style="display:none">
+    <div class="editor-wrap">
+      <div class="editor-header">
+        <select id="lang-select" class="lang-select" onchange="changeLanguage()">
+  <option value="javascript">JavaScript</option>
+  <option value="python">Python</option>
+  <option value="java">Java</option>
+  <option value="cpp">C++</option>
+  <option value="c">C</option>
+  <option value="htmlmixed">HTML</option>
+  <option value="css">CSS</option>
+</select>
+        <button class="btn-run" onclick="runCode()">Run ▶</button>
+      </div>
+      <textarea id="editor"></textarea>
+    </div>
+
+    <!-- Right panel -->
+    <div class="right-panel">
+      <!-- Output -->
+      <div class="panel-section">
+        <div class="panel-title">Output</div>
+        <div class="output-box" id="output">// Output will appear here</div>
+      </div>
+
+      <!-- Chat -->
+      <div class="panel-section chat-section">
+        <div class="panel-title">Live Chat</div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input-row">
+          <input id="chat-input" placeholder="Message..." onkeydown="chatKeydown(event)" />
+          <button onclick="sendChat()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
