@@ -1,69 +1,135 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dracula">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CollabCode — Live Editor</title>
   <link rel="stylesheet" href="style.css" />
 
-  <!-- CodeMirror: the code editor -->
+  <!-- CodeMirror styles -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css"/>
+
+  <!-- CodeMirror core + languages -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
 
   <!-- Firebase -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
-<body>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+</head>
+<body data-theme="dracula">
 
-  <!-- Top bar -->
+  <!-- ── Top bar ── -->
   <div class="topbar">
-    <div class="logo">CollabCode</div>
+    <div class="logo">
+      <div class="logo-dot"></div>
+      CollabCode
+    </div>
     <div class="room-info">
       Room: <span id="room-id">—</span>
     </div>
     <div class="topbar-right">
       <div class="users" id="user-list"></div>
-      <button class="btn-share" onclick="copyLink()">Copy invite link</button>
+
+      <!-- Theme switcher -->
+      <select class="theme-select" onchange="changeTheme(this.value)" id="theme-select">
+        <option value="dracula">Dracula</option>
+        <option value="github-dark">GitHub Dark</option>
+        <option value="monokai">Monokai</option>
+        <option value="night-owl">Night Owl</option>
+        <option value="light">Light</option>
+      </select>
+
+      <button class="btn-share" onclick="toggleWhiteboard()" id="wb-btn">Whiteboard</button>
+      <button class="btn-share" onclick="copyLink()">Copy link</button>
     </div>
   </div>
 
-  <!-- Join screen (shown first) -->
+  <!-- ── Join screen ── -->
   <div class="join-screen" id="join-screen">
     <div class="join-card">
       <h1>CollabCode</h1>
-      <p>Real-time collaborative code editor. Share the link, code together.</p>
-      <input id="name-input" placeholder="Your name (e.g. Arjun)" maxlength="20" />
-      <button onclick="joinRoom()">Join / Create Room</button>
+      <p class="join-tagline">Real-time collaborative editor.<br>Share the link, code together.</p>
+      <input id="name-input" placeholder="Your name" maxlength="20" />
+      <input id="room-input" placeholder="Room ID (blank = create new)" />
+      <div class="password-row">
+        <input id="password-input" type="password" placeholder="Password (optional)" />
+        <div class="pwd-hint">Leave blank for a public room</div>
+      </div>
+      <button onclick="joinRoom()">Join / Create Room →</button>
       <div class="join-hint" id="join-hint"></div>
     </div>
   </div>
 
-  <!-- Main editor (hidden until joined) -->
+  <!-- ── Main editor ── -->
   <div class="editor-layout" id="editor-layout" style="display:none">
+
+    <!-- Left: code editor -->
     <div class="editor-wrap">
       <div class="editor-header">
         <select id="lang-select" class="lang-select" onchange="changeLanguage()">
-  <option value="javascript">JavaScript</option>
-  <option value="python">Python</option>
-  <option value="java">Java</option>
-  <option value="cpp">C++</option>
-  <option value="c">C</option>
-  <option value="htmlmixed">HTML</option>
-  <option value="css">CSS</option>
-</select>
-        <button class="btn-run" onclick="runCode()">Run ▶</button>
+          <option value="javascript">JavaScript</option>
+          <option value="python">Python</option>
+          <option value="java">Java</option>
+          <option value="cpp">C++</option>
+          <option value="c">C</option>
+          <option value="htmlmixed">HTML</option>
+          <option value="css">CSS</option>
+        </select>
+
+        <!-- AI suggest button -->
+        <button class="btn-ai" id="btn-ai" onclick="getAISuggestion()">
+          <div class="ai-spinner"></div>
+          <span class="ai-label">✦ Suggest</span>
+        </button>
+
+        <button class="btn-run" onclick="runCode()" id="run-btn">Run ▶</button>
       </div>
+
+      <!-- AI suggestion strip -->
+      <div class="ai-suggestion-box" id="ai-suggestion-box"></div>
+      <div class="ai-suggestion-actions" id="ai-suggestion-actions">
+        <button class="ai-accept-btn" onclick="acceptSuggestion()">Accept ↵</button>
+        <button class="ai-dismiss-btn" onclick="dismissSuggestion()">Dismiss</button>
+        <div class="ai-suggestion-label">✦ Claude AI</div>
+      </div>
+
       <textarea id="editor"></textarea>
     </div>
 
     <!-- Right panel -->
     <div class="right-panel">
+
+      <!-- Video call -->
+      <div class="panel-section" id="video-section">
+        <div class="panel-title">
+          <span>Video Call</span>
+          <div style="display:flex;gap:5px;">
+            <button class="ctrl-btn" id="btn-mute"   onclick="toggleMute()">🎤</button>
+            <button class="ctrl-btn" id="btn-video"  onclick="toggleVideo()">📷</button>
+            <button class="ctrl-btn" id="btn-call"   onclick="startCall()"  style="color:var(--accent2)">Call</button>
+            <button class="ctrl-btn" id="btn-hangup" onclick="hangUp()"     style="color:var(--danger);display:none">End</button>
+          </div>
+        </div>
+        <div class="video-wrap">
+          <video id="remote-video" autoplay playsinline></video>
+          <video id="local-video"  autoplay playsinline muted></video>
+          <div class="no-call-msg" id="no-call-msg">Click "Call" to start video</div>
+        </div>
+      </div>
+
+      <!-- Presence -->
+      <div class="panel-section">
+        <div class="panel-title">Who's here</div>
+        <div id="presence-list" style="padding:8px 14px;display:flex;flex-direction:column;gap:6px;"></div>
+      </div>
+
       <!-- Output -->
       <div class="panel-section">
         <div class="panel-title">Output</div>
@@ -75,11 +141,24 @@
         <div class="panel-title">Live Chat</div>
         <div class="chat-messages" id="chat-messages"></div>
         <div class="chat-input-row">
-          <input id="chat-input" placeholder="Message..." onkeydown="chatKeydown(event)" />
+          <input id="chat-input" placeholder="Message..." onkeydown="chatKeydown(event)" oninput="sendTyping()" />
           <button onclick="sendChat()">Send</button>
         </div>
       </div>
+
     </div>
+  </div>
+
+  <!-- ── Whiteboard ── -->
+  <div id="whiteboard-panel" style="display:none;position:absolute;inset:52px 0 0 0;background:var(--surface);z-index:100;flex-direction:column;">
+    <div style="padding:8px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--surface);">
+      <span style="font-size:12px;color:var(--text3);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">Whiteboard</span>
+      <input type="color" id="wb-color" value="#818cf8" style="width:26px;height:26px;border:none;background:none;cursor:pointer;border-radius:4px;">
+      <input type="range" id="wb-size" min="1" max="20" value="3" style="width:80px;">
+      <button onclick="clearWhiteboard()" style="background:var(--surface2);border:1px solid var(--border);color:var(--danger);padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">Clear</button>
+      <button onclick="toggleWhiteboard()" style="margin-left:auto;background:var(--surface2);border:1px solid var(--border);color:var(--text2);padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;">← Back to editor</button>
+    </div>
+    <canvas id="wb-canvas" style="flex:1;cursor:crosshair;display:block;width:100%;background:var(--bg);"></canvas>
   </div>
 
   <script src="app.js"></script>
