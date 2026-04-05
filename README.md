@@ -1,4 +1,5 @@
-CollabCode- a full-featured collaborative development platform with real-time coding!
+CollabCode- 
+a full-featured collaborative development platform with real-time coding!
 
 Key Features-
 - Multi-user code editing with instant synchronization  
